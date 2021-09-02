@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./static/css/toastui-editor.min.css">
+    <link rel="stylesheet" href="./static/css/toastui-editor-dark.min.css">
+    <script src="./static/js/toastui-editor-all.min.js"></script>
+    <link rel="stylesheet" href="./static/css/style.css">
+</head>
+<body>
+    <div id="mySidenav" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <a href="#"></a>
+    </div>
+    <span onclick="openNav()" class="menu-bar">
+        <svg viewBox="0 0 100 80" width="40" height="40">
+            <rect width="100" height="10" ></rect>
+            <rect y="30" width="75" height="10" ></rect>
+            <rect y="60" width="45" height="10" ></rect>
+        </svg>
+    </span>
+    <div id="status" class="tag">Status: Saved</div>
+    <button class="btn">Save</button>
+    <div id="editor"></div>
+</body>
+<script>
+     const editor = new toastui.Editor({
+        el: document.querySelector('#editor'),
+        previewStyle: 'vertical',
+        height: '500px',
+        theme: 'dark'
+        // initialValue: content
+    });
+
+    // hide status
+    document.getElementById('status').style.display = "none";
+
+    /* Set the width of the side navigation to 250px */
+    function openNav() {
+        // document.getElementById("mySidenav").style.display = "block"; 
+        document.getElementById("mySidenav").style.width = "350px";
+        document.getElementById("editor").style.marginLeft = "350px";
+    }
+    
+    /* Set the width of the side navigation to 0 */
+    function closeNav() {
+        // document.getElementById("mySidenav").style.display = "none"; 
+        document.getElementById("mySidenav").style.width = "0px";
+        document.getElementById("editor").style.marginLeft = "0px";
+    }
+
+</script>
+</html>
