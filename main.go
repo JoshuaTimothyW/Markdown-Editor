@@ -5,32 +5,57 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
-	"strings"
 )
 
 type M map[string]interface{}
 
-var tmpl, err = template.ParseGlob("views/*")
+var data = M{}
+
+func list_dir(path string) int {
+	files, err := ioutil.ReadDir("./content")
+
+	var list_md []string
+
+	data = M{
+		"title":      "Markdown Editor",
+		"list_files": list_md,
+	}
+
+	if err == nil {
+		for _, file := range files {
+			list_md = append(list_md, file.Name())
+		}
+	} else {
+		return 0
+	}
+
+	return 1
+}
 
 func main() {
 
+	// laod static files
+	http.Handle("/static/",
+		http.StripPrefix("/static/",
+			http.FileServer(http.Dir("views/static"))))
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
-		files, err := ioutil.ReadDir(".")
+		tmpl, err := template.ParseFiles("views/index.html")
 
-		var list_md = []string
-		
-		if err == nil {
-			for _, file := range files {
-				append(list_md,file.Name())
-				// fmt.Println(file.Name(), file.IsDir())
-			}
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
-		// fmt.Println(files)
+		is_dir := list_dir("./content")
 
-		err := tmpl.ExecuteTemplate(w, "index.html", list_md)
-		
+		if is_dir != 1 {
+			list_dir(".")
+		}
+
+		err = tmpl.Execute(w, data)
+
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}

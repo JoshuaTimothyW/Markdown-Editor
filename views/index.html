@@ -4,17 +4,15 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MD Editor</title>
-    <link rel="stylesheet" href="./static/css/style.css">
+    <title>{{ .title }}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-    <!-- {{range $index, $elem := .list_md}}
-        {{$elem}},
-    {{end}} -->
     <h1 class="title">List Files</h1>
     <div class="list-middle">
-        <a href="/edit.html"><h2>edit</h2></a>
-        <a href="/edit.html"><h2>edit</h2></a>
+        {{range $index, $elem := .list_files}}
+            <a href="/edit.html"><h2>{{$elem}}</h2></a>
+        {{end}}
     </div>
 </body>
 </html>

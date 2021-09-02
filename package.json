@@ -1,0 +1,20 @@
+{
+  "name": "md-editor",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon --exec go run main.go"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JoshuaTimothyW/Markdown-Editor.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JoshuaTimothyW/Markdown-Editor/issues"
+  },
+  "homepage": "https://github.com/JoshuaTimothyW/Markdown-Editor#readme"
+}
