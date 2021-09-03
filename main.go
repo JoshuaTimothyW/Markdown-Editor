@@ -1,67 +1,95 @@
 package main
 
 import (
-	"fmt"
-	"html/template"
-	"io/ioutil"
-	"net/http"
+	"os"
+	"path/filepath"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type M map[string]interface{}
 
-var data = M{}
+type Files struct {
+	Filename string
+	Filepath string
+}
+
+type Data struct {
+	Title      string
+	Content    string
+	List_files []Files
+}
+
+var data Data
 
 func list_dir(path string) int {
-	files, err := ioutil.ReadDir("./content")
 
-	var list_md []string
+	data.List_files = nil
 
-	data = M{
-		"title":      "Markdown Editor",
-		"list_files": list_md,
-	}
+	var file Files
 
-	if err == nil {
-		for _, file := range files {
-			list_md = append(list_md, file.Name())
-		}
-	} else {
+	err := filepath.Walk("./content",
+		func(name string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if len(filepath.Ext(name)) > 0 {
+				file.Filename = filepath.Base(name)
+				file.Filepath = name
+				data.List_files = append(data.List_files, file)
+			}
+
+			return nil
+		})
+
+	data.Title = "Markdown Editor"
+
+	if err != nil {
 		return 0
 	}
 
 	return 1
 }
 
-func main() {
+// get list of files
+func check_dir() {
+	is_dir := list_dir("./content")
 
-	// laod static files
-	http.Handle("/static/",
-		http.StripPrefix("/static/",
-			http.FileServer(http.Dir("views/static"))))
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-
-		tmpl, err := template.ParseFiles("views/index.html")
-
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		is_dir := list_dir("./content")
+	if is_dir != 1 {
+		list_dir(".")
 
 		if is_dir != 1 {
-			list_dir(".")
+			println("No views called index.html")
 		}
+	}
+}
 
-		err = tmpl.Execute(w, data)
+// initial views
+func index(c *fiber.Ctx) error {
+	check_dir()
 
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+	return c.Render("views/edit.html", fiber.Map{
+		"title":      data.Title,
+		"list_files": data.List_files,
+		"content":    data.Content,
 	})
 
-	port := "9000"
-	fmt.Println("server started at localhost:" + port)
-	http.ListenAndServe(":"+port, nil)
+}
+
+func main() {
+
+	app := fiber.New()
+
+	// Static files : css and js
+	app.Static("/", "./views")
+
+	// main page
+	app.Get("/", index)
+
+	port := ":9000"
+
+	println("Server started at ", port)
+	app.Listen(port)
+
 }
