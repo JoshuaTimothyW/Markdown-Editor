@@ -1,13 +1,24 @@
 package main
 
 import (
+	"bufio"
+	"embed"
+	"fmt"
+	"html/template"
+	"net/http"
+	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
-
-	"github.com/gofiber/fiber/v2"
 )
 
 type M map[string]interface{}
+
+//go:embed views/index.html
+var indexTemplate embed.FS
+
+//go:embed views
+var assets embed.FS
 
 type Files struct {
 	Filename string
@@ -16,7 +27,7 @@ type Files struct {
 
 type Data struct {
 	Title      string
-	Content    string
+	Content    []string
 	List_files []Files
 }
 
@@ -65,31 +76,87 @@ func check_dir() {
 	}
 }
 
-// initial views
-func index(c *fiber.Ctx) error {
-	check_dir()
+func read(path string) {
+	file, err := os.Open("./" + path)
 
-	return c.Render("views/edit.html", fiber.Map{
-		"title":      data.Title,
-		"list_files": data.List_files,
-		"content":    data.Content,
-	})
+	if err != nil {
+		fmt.Println("The path doesn't exist")
+		return
+	}
 
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+
+	for scanner.Scan() {
+		data.Content = append(data.Content, scanner.Text())
+	}
+
+	file.Close()
 }
 
 func main() {
 
-	app := fiber.New()
+	// load static files
 
-	// Static files : css and js
-	app.Static("/", "./views")
+	http.Handle("/static/",
+		http.StripPrefix("/static/",
+			http.FileServer(http.FS(assets))))
 
-	// main page
-	app.Get("/", index)
+	http.HandleFunc("/edit", func(w http.ResponseWriter, r *http.Request) {
+		u, err := url.Parse(r.URL.RawPath)
 
-	port := ":9000"
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	println("Server started at ", port)
-	app.Listen(port)
+		fmt.Println(u.Query()["path"][0])
 
+		http.Redirect(w, r, "/", 200)
+	})
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// get list of files
+		check_dir()
+
+		// tmpl, err := template.ParseFS(indexTemplate, "views/index.html")
+		tmpl, err := template.ParseFiles("views/index.html")
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		err = tmpl.Execute(w, data)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
+
+	port := "9000"
+
+	err := exec.Command("rundll32", "url.dll,FileProtocolHandler", "http://localhost:", port).Start()
+	// err := exec.Command("start", "http://localhost:", port).Start()
+
+	if err != nil {
+		fmt.Println("Cannot open browser automaticly")
+	}
+
+	urlStr := "http://localhost:9000/edit?path=content%5cposts%5cpost-1.md"
+
+	u, err := url.Parse(urlStr)
+
+	if err != nil {
+		return
+	}
+
+	fmt.Println(u.Query()["path"][0])
+
+	read(u.Query()["path"][0])
+
+	fmt.Println(data.Content)
+
+	fmt.Println("server started at localhost:" + port)
+	http.ListenAndServe(":"+port, nil)
 }

@@ -4,20 +4,18 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ .title }}</title>
-    <link rel="stylesheet" href="/static/css/toastui-editor.min.css">
-    <link rel="stylesheet" href="/static/css/toastui-editor-dark.min.css">
-    <script src="/static/js/toastui-editor-all.min.js"></script>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <title>{{ .Title }}</title>
+    <link rel="stylesheet" href="/static/views/static/css/toastui-editor.min.css">
+    <link rel="stylesheet" href="/static/views/static/css/toastui-editor-dark.min.css">
+    <script src="/static/views/static/js/toastui-editor-all.min.js"></script>
+    <link rel="stylesheet" href="/static/views/static/css/style.css">
 </head>
 <body>
     <div id="mySidenav" class="sidenav">
         <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
         
-        {{ with .list_files }}
-            {{ range . }}
-                <a href="{{ . }}">{{ . }}</a>
-            {{ end }}
+        {{ range .List_files }}
+            <a href="/edit?path={{ .Filepath }}">{{ .Filename }}</a>
         {{ end }}
     </div>
     <span onclick="openNav()" class="menu-bar">
@@ -29,7 +27,11 @@
     </span>
     <div id="status" class="tag">Status: Saved</div>
     <button class="btn">Save</button>
-    <div id="editor">{{ .content }}</div>
+    <div id="editor">
+        {{ range $_,$txt := .Content }}
+            {{ $txt }}
+        {{ end }}
+    </div>
 </body>
 <script>
      const editor = new toastui.Editor({
