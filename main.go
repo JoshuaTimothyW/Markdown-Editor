@@ -2,23 +2,17 @@ package main
 
 import (
 	"bufio"
-	"embed"
-	"fmt"
 	"html/template"
+	"io"
+	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
-	"os/exec"
 	"path/filepath"
+
+	"github.com/labstack/echo"
 )
 
 type M map[string]interface{}
-
-//go:embed views/index.html
-var indexTemplate embed.FS
-
-//go:embed views
-var assets embed.FS
 
 type Files struct {
 	Filename string
@@ -32,6 +26,22 @@ type Data struct {
 }
 
 var data Data
+
+// TemplateRenderer is a custom html/template renderer for Echo framework
+type TemplateRenderer struct {
+	templates *template.Template
+}
+
+// Render renders a template document
+func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+
+	// Add global methods if data is a map
+	if viewContext, isMap := data.(map[string]interface{}); isMap {
+		viewContext["reverse"] = c.Echo().Reverse
+	}
+
+	return t.templates.ExecuteTemplate(w, name, data)
+}
 
 func list_dir(path string) int {
 
@@ -76,87 +86,59 @@ func check_dir() {
 	}
 }
 
-func read(path string) {
-	file, err := os.Open("./" + path)
+func readFile(path string) {
+	file, err := os.Open(path)
 
 	if err != nil {
-		fmt.Println("The path doesn't exist")
 		return
 	}
 
 	scanner := bufio.NewScanner(file)
 	scanner.Split(bufio.ScanLines)
 
+	var txtlines []string
+
 	for scanner.Scan() {
-		data.Content = append(data.Content, scanner.Text())
+		txtlines = append(txtlines, scanner.Text())
 	}
 
 	file.Close()
+
+	data.Content = txtlines
 }
 
 func main() {
 
-	// load static files
+	r := echo.New()
 
-	http.Handle("/static/",
-		http.StripPrefix("/static/",
-			http.FileServer(http.FS(assets))))
+	renderer := &TemplateRenderer{
+		templates: template.Must(template.ParseGlob("views/*.html")),
+	}
 
-	http.HandleFunc("/edit", func(w http.ResponseWriter, r *http.Request) {
-		u, err := url.Parse(r.URL.RawPath)
+	r.Renderer = renderer
 
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	r.Static("/static", "views/static")
 
-		fmt.Println(u.Query()["path"][0])
-
-		http.Redirect(w, r, "/", 200)
-	})
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// get list of files
+	r.GET("/", func(ctx echo.Context) error {
+		data.Title = "whatever"
+		readFile("./content/posts/post-1.md")
 		check_dir()
-
-		// tmpl, err := template.ParseFS(indexTemplate, "views/index.html")
-		tmpl, err := template.ParseFiles("views/index.html")
-
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		err = tmpl.Execute(w, data)
-
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+		return ctx.Render(http.StatusOK, "index.html", M{
+			"Title":      data.Title,
+			"Content":    data.Content,
+			"List_files": data.List_files,
+		})
 	})
 
-	port := "9000"
+	r.GET("/read", func(ctx echo.Context) error {
+		b, err := ioutil.ReadFile("./content/posts/post-1.md")
+		if err != nil {
+			return nil
+		}
+		data := M{"content": string(b)}
+		return ctx.JSON(http.StatusOK, data)
+	})
 
-	err := exec.Command("rundll32", "url.dll,FileProtocolHandler", "http://localhost:", port).Start()
-	// err := exec.Command("start", "http://localhost:", port).Start()
+	r.Start(":9000")
 
-	if err != nil {
-		fmt.Println("Cannot open browser automaticly")
-	}
-
-	urlStr := "http://localhost:9000/edit?path=content%5cposts%5cpost-1.md"
-
-	u, err := url.Parse(urlStr)
-
-	if err != nil {
-		return
-	}
-
-	fmt.Println(u.Query()["path"][0])
-
-	read(u.Query()["path"][0])
-
-	fmt.Println(data.Content)
-
-	fmt.Println("server started at localhost:" + port)
-	http.ListenAndServe(":"+port, nil)
 }

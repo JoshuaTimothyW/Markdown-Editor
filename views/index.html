@@ -5,17 +5,16 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ .Title }}</title>
-    <link rel="stylesheet" href="/static/views/static/css/toastui-editor.min.css">
-    <link rel="stylesheet" href="/static/views/static/css/toastui-editor-dark.min.css">
-    <script src="/static/views/static/js/toastui-editor-all.min.js"></script>
-    <link rel="stylesheet" href="/static/views/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/toastui-editor.min.css">
+    <link rel="stylesheet" href="/static/css/toastui-editor-dark.min.css">
+    <script src="/static/js/toastui-editor-all.min.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
     <div id="mySidenav" class="sidenav">
         <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-        
-        {{ range .List_files }}
-            <a href="/edit?path={{ .Filepath }}">{{ .Filename }}</a>
+        {{ range $index, $data := .List_files }}
+            <a href="/edit/{{ $index }}/">{{ $data.Filename }}</a>
         {{ end }}
     </div>
     <span onclick="openNav()" class="menu-bar">
@@ -25,23 +24,33 @@
             <rect y="60" width="45" height="5" ></rect>
         </svg>
     </span>
+    <!-- <div id="preContent" style="display: none;">{{ .Content }}</div> -->
     <div id="status" class="tag">Status: Saved</div>
     <button class="btn">Save</button>
-    <div id="editor">
-        {{ range $_,$txt := .Content }}
-            {{ $txt }}
-        {{ end }}
-    </div>
+    <div id="editor"></div>
 </body>
 <script>
-     const editor = new toastui.Editor({
+
+    const editor = new toastui.Editor({
         el: document.querySelector('#editor'),
         previewStyle: 'vertical',
         height: '500px',
-        theme: 'dark'
-        // initialValue: content
+        theme: 'dark',
     });
 
+    document.querySelector(".ProseMirror").innerHTML = "{{ range $index, $data := .Content }}{{ $data }}{{ end }}";
+
+    async function getContent(url) {
+        const res = await fetch(url);
+        let data = await res.json();
+        document.querySelector(".ProseMirror").style = "white-space: pre-line;";
+        // document.querySelector(".ProseMirror").innerHTML = data["content"].replace(/\n|\r\n|\n\r|\r/g,'<br>');
+        document.querySelector(".ProseMirror").innerHTML = "<pre>"+data["content"]+"</pre>";
+        console.log(data);
+    }
+
+    // call get content method
+    // getContent("http://localhost:9000/read");
 
     // hide status
     document.getElementById('status').style.display = "none";
