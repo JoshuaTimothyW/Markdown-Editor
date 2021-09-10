@@ -17,6 +17,9 @@
 .title{
   text-align: center;
   color: white;
+  left: 50%;
+  position: fixed;
+  display: inline-block;
 }
 
 body{
@@ -59,6 +62,7 @@ body{
 }
 
 .tag{
+    position: fixed; 
     display: inline-block;
     right: 150px;
     margin-bottom: 0.5rem;
@@ -67,8 +71,7 @@ body{
     font-weight: 400;
     line-height: 1.5;
     background: var(--success);
-    border-radius: 4px;
-    position: fixed; 
+    font-size: 1rem;
 }
 
 /* The side navigation menu */
@@ -81,7 +84,7 @@ body{
     left: 0;
     background-color: #111; 
     overflow-x: hidden; 
-    padding-top: 60px; 
+    padding-top: 60px;
 }
 
   /* The navigation menu links */
@@ -112,6 +115,34 @@ body{
   #editor {
     /* transition: margin-left .5s; */
     padding: 20px;
+  }
+
+  .navbar{
+    position: relative;
+    /* width: 100%; */
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    align-items: center;
+    background-color: #212529!important;
+  }
+
+  .navbar-item{
+    float: left;
+    display: block;
+    text-align: center;
+
+  }
+
+  .container-fluid{
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
   }
 
   

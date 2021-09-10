@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"html/template"
 	"io"
 	"io/ioutil"
@@ -21,7 +20,7 @@ type Files struct {
 
 type Data struct {
 	Title      string
-	Content    []string
+	Content    string
 	List_files []Files
 }
 
@@ -81,30 +80,19 @@ func check_dir() {
 		list_dir(".")
 
 		if is_dir != 1 {
-			println("No views called index.html")
+			println("No markdown files")
 		}
 	}
 }
 
+// read file by path
 func readFile(path string) {
-	file, err := os.Open(path)
-
+	b, err := ioutil.ReadFile("./content/markdown-syntax.md")
 	if err != nil {
 		return
 	}
 
-	scanner := bufio.NewScanner(file)
-	scanner.Split(bufio.ScanLines)
-
-	var txtlines []string
-
-	for scanner.Scan() {
-		txtlines = append(txtlines, scanner.Text())
-	}
-
-	file.Close()
-
-	data.Content = txtlines
+	data.Content = string(b)
 }
 
 func main() {
@@ -117,11 +105,11 @@ func main() {
 
 	r.Renderer = renderer
 
-	r.Static("/static", "views/static")
+	r.Static("./static", "views/static")
 
 	r.GET("/", func(ctx echo.Context) error {
 		data.Title = "whatever"
-		readFile("./content/posts/post-1.md")
+		readFile("./content/markdown-syntax.md")
 		check_dir()
 		return ctx.Render(http.StatusOK, "index.html", M{
 			"Title":      data.Title,
@@ -131,7 +119,7 @@ func main() {
 	})
 
 	r.GET("/read", func(ctx echo.Context) error {
-		b, err := ioutil.ReadFile("./content/posts/post-1.md")
+		b, err := ioutil.ReadFile("./content/markdown-syntax.md")
 		if err != nil {
 			return nil
 		}
