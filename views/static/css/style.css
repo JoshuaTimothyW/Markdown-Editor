@@ -15,11 +15,11 @@
 }
 
 .title{
-  text-align: center;
-  color: white;
+  float: none;
+  position: absolute;
   left: 50%;
-  position: fixed;
-  display: inline-block;
+  transform: translate(-50%, -50%);
+  color: white;
 }
 
 body{
@@ -112,7 +112,7 @@ body{
   }
   
   /* Style page content - use this if you want to push the page content to the right when you open the side navigation */
-  #editor {
+  #editor{
     /* transition: margin-left .5s; */
     padding: 20px;
   }
@@ -136,7 +136,6 @@ body{
     float: left;
     display: block;
     text-align: center;
-
   }
 
   .container-fluid{
@@ -145,6 +144,10 @@ body{
     margin-left: auto;
   }
 
+  .float-right{
+    float: right;
+    top: 1rem;
+  }
   
   /* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
 @media screen and (max-height: 450px) {

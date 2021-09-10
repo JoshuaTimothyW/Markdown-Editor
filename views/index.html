@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ .Title }}</title>
-    <link rel="stylesheet" href="./static/css/toastui-editor.min.css">
-    <link rel="stylesheet" href="./static/css/toastui-editor-dark.min.css">
-    <script src="./static/js/toastui-editor-all.min.js"></script>
-    <link rel="stylesheet" href="./static/css/style.css">
+    <title>Markdown Editor</title>
+    <link rel="stylesheet" href="/static/css/toastui-editor.min.css">
+    <link rel="stylesheet" href="/static/css/toastui-editor-dark.min.css">
+    <script src="/static/js/toastui-editor-all.min.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body class="container-fluid">
     <div class="navbar">
         <div id="mySidenav" class="sidenav">
             <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-            <!-- list files -->
+            <div id="list-files"></div>
         </div>
         <span onclick="openNav()" class="menu-bar">
             <svg viewBox="0 0 100 80" width="40" height="40">
@@ -23,9 +23,11 @@
                 <rect y="60" width="45" height="5" ></rect>
             </svg>
         </span>
-        <h2 id="filename" class="title navbar-item">Hero</h2>
-        <div id="status" class="tag navbar-item">Status: Saved</div>
-        <button class="btn navbar-item" onclick="save()">Save</button>
+        <h2 id="filename" class="title"></h2>
+        <div class="float-right">
+            <div id="status" class="tag">Status: Saved</div>
+            <button class="btn" onclick="save()">Save</button>
+        </div>
     </div>
 
     <div id="editor"></div>
@@ -39,19 +41,35 @@
         theme: 'dark',
     });
 
-    // document.querySelector(".ProseMirror").innerHTML = "{{ range $index, $data := .Content }}{{ $data }}{{ end }}";
+    function click_link(url) {
+        closeNav();
+        getContent(url);
+    }
 
     async function getContent(url) {
         const res = await fetch(url);
         let data = await res.json();
+        let txt;
         
-        // document.querySelector(".ProseMirror").innerHTML = data["content"].replace(/\n|\r\n|\n\r|\r/g,'<br>');
-        editor.setMarkdown(data["content"]);
+        // list files
+        data["List_files"].forEach( el => {
+            txt += 
+            "<a href='/edit?path="+el.Filepath+"' >"+el.Filename+"</a>"; 
+        });
+
+        document.getElementById("list-files").innerHTML = txt;
+
         console.log(data);
+
+        // set title
+        document.getElementById("title").innerHTML = data["Title"];
+
+        // set content to markdown editor
+        editor.setMarkdown(data["Content"]);
     }
 
     // call get content method
-    getContent("http://localhost:9000/read");
+    getContent("/read");
 
     // hide status
     // document.getElementById('status').style.display = "none";
