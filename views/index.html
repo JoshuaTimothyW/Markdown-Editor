@@ -26,13 +26,16 @@
         <h2 id="filename" class="title"></h2>
         <div class="float-right">
             <div id="status" class="tag">Status: Saved</div>
-            <button class="btn" onclick="save()">Save</button>
+            <button id="btn-save" type="button" class="btn btn-primary" onclick="save()" >Save</button>
         </div>
     </div>
 
     <div id="editor"></div>
 </body>
 <script>
+
+    var title;
+    var filepath;
 
     const editor = new toastui.Editor({
         el: document.querySelector('#editor'),
@@ -44,12 +47,15 @@
     function click_link(url) {
         closeNav();
         getContent(url);
+        document.getElementById("btn-save").removeAttribute("disabled");
     }
 
     async function getContent(url) {
         const res = await fetch(url);
         let data = await res.json();
         let txt;
+
+        console.log(data);
         
         // list files
         data["List_files"].forEach( el => {
@@ -59,10 +65,13 @@
 
         document.getElementById("list-files").innerHTML = txt;
 
-        console.log(data);
+        title = data["Title"];
 
         // set title
-        document.getElementById("title").innerHTML = data["Title"];
+        document.getElementById("filename").innerHTML = title;
+
+        // set filepath
+        filepath = data["CurrentPath"];
 
         // set content to markdown editor
         editor.setMarkdown(data["Content"]);
@@ -72,7 +81,7 @@
     getContent("/read");
 
     // hide status
-    // document.getElementById('status').style.display = "none";
+    document.getElementById('status').style.display = "none";
 
     /* Set the width of the side navigation to 250px */
     function openNav() {
@@ -89,15 +98,34 @@
     }
 
     // Save function
-    function save() {
-        let filename = "default.md";
-        let content = editor.getMarkdown();
-        let link = document.createElement('a');
-        mimeType = 'text/html' || 'text/plain';
+    async function save() {
 
-        link.setAttribute('download', filename);
-        link.setAttribute('href', 'data:' + mimeType  +  ';charset=utf-8,' + encodeURIComponent(content));
-        link.click();
+        let content = editor.getMarkdown();
+
+        fetch("/",{
+            method: 'POST',
+            body: JSON.stringify({
+                "Filepath":filepath,
+                "content":content,
+            })
+        })
+        .then( (res) => {
+            console.log(res.json());
+            document.getElementById('status').style.display = "";
+
+            setTimeout(() => {
+                document.getElementById('status').style.display = "none";
+            }, 3000);
+        })
+        .catch( (err) => {
+            let link = document.createElement('a');
+            mimeType = 'text/html' || 'text/plain';
+    
+            link.setAttribute('download', title);
+            link.setAttribute('href', 'data:' + mimeType  +  ';charset=utf-8,' + encodeURIComponent(content));
+            link.click();
+        })
+
     }
 
 </script>

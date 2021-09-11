@@ -41,7 +41,6 @@ body{
     display: inline-block;
     font-weight: 400;
     line-height: 1.5;
-    color: white;
     text-align: center;
     text-decoration: none;
     vertical-align: middle;
@@ -49,7 +48,6 @@ body{
     -webkit-user-select: none;
     -moz-user-select: none;
     user-select: none;
-    background-color: var(--primary);
     border: 1px solid var(--primary);
     padding: .375rem .75rem;
     font-size: 1rem;
@@ -57,8 +55,27 @@ body{
     transition: color .15s
 }
 
-.btn:hover{
+.btn-primary{
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover{
     background-color: #0dcaf0;
+}
+
+.btn-primary.disabled
+.btn-primary:disabled{
+  color: #fff;
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+.btn.disabled,
+.btn:disabled{
+  pointer-events: none;
+  opacity: .65;
 }
 
 .tag{

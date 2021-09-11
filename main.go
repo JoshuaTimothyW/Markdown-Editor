@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"io"
 	"io/ioutil"
@@ -19,9 +20,10 @@ type Files struct {
 }
 
 type Data struct {
-	Title      string
-	Content    string
-	List_files []Files
+	Title       string
+	Content     string
+	CurrentPath string
+	List_files  []Files
 }
 
 var data Data
@@ -42,6 +44,7 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
+// list all directories
 func list_dir(path string) int {
 
 	data.List_files = nil
@@ -62,8 +65,6 @@ func list_dir(path string) int {
 
 			return nil
 		})
-
-	data.Title = "Markdown Editor"
 
 	if err != nil {
 		return 0
@@ -87,12 +88,19 @@ func check_dir() {
 
 // read file by path
 func readFile(path string) {
-	b, err := ioutil.ReadFile("./content/markdown-syntax.md")
+	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return
 	}
 
 	data.Content = string(b)
+	data.CurrentPath = path
+	data.Title = filepath.Base(path)
+}
+
+func writeFile() {
+	ioutil.WriteFile(data.CurrentPath, []byte(data.Content), 0644)
+
 }
 
 func main() {
@@ -105,26 +113,46 @@ func main() {
 
 	r.Renderer = renderer
 
-	r.Static("./static", "views/static")
+	r.Static("/static", "views/static")
 
 	r.GET("/", func(ctx echo.Context) error {
-		data.Title = "whatever"
-		readFile("./content/markdown-syntax.md")
+
+		// readFile("./content/markdown-syntax.md")
+
 		check_dir()
-		return ctx.Render(http.StatusOK, "index.html", M{
-			"Title":      data.Title,
-			"Content":    data.Content,
-			"List_files": data.List_files,
-		})
+
+		return ctx.Render(http.StatusOK, "index.html", M{})
+	})
+
+	r.GET("/edit", func(ctx echo.Context) error {
+
+		path := ctx.QueryParam("path")
+
+		// list all file directory
+		check_dir()
+
+		if len(path) > 0 {
+			// read file to fetch content
+			readFile(path)
+		}
+
+		// return ctx.Redirect(http.StatusOK, "/")
+		return ctx.Render(http.StatusOK, "index.html", M{})
 	})
 
 	r.GET("/read", func(ctx echo.Context) error {
-		b, err := ioutil.ReadFile("./content/markdown-syntax.md")
-		if err != nil {
-			return nil
-		}
-		data := M{"content": string(b)}
 		return ctx.JSON(http.StatusOK, data)
+	})
+
+	r.POST("/save", func(ctx echo.Context) error {
+		data.CurrentPath = ctx.FormValue("Filepath")
+		data.Content = ctx.FormValue("Content")
+		fmt.Println(data)
+		writeFile()
+
+		return ctx.JSON(http.StatusOK, M{
+			"status": "OK",
+		})
 	})
 
 	r.Start(":9000")
