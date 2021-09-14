@@ -5,10 +5,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markdown Editor</title>
-    <link rel="stylesheet" href="/static/css/toastui-editor.min.css">
-    <link rel="stylesheet" href="/static/css/toastui-editor-dark.min.css">
-    <script src="/static/js/toastui-editor-all.min.js"></script>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="static/css/toastui-editor.min.css">
+    <link rel="stylesheet" href="static/css/toastui-editor-dark.min.css">
+    <script src="static/js/toastui-editor-all.min.js"></script>
+    <link rel="stylesheet" href="static/css/style.css">
 </head>
 <body class="container-fluid">
     <div class="navbar">
@@ -34,7 +34,7 @@
 </body>
 <script>
 
-    var title;
+    var title = "default";
     var filepath;
 
     const editor = new toastui.Editor({
@@ -121,7 +121,7 @@
             let link = document.createElement('a');
             mimeType = 'text/html' || 'text/plain';
     
-            link.setAttribute('download', title);
+            link.setAttribute('download', title+".md");
             link.setAttribute('href', 'data:' + mimeType  +  ';charset=utf-8,' + encodeURIComponent(content));
             link.click();
         })
