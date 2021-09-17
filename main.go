@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"html/template"
 	"io"
 	"io/ioutil"
@@ -99,7 +98,7 @@ func readFile(path string) {
 }
 
 func writeFile() {
-	ioutil.WriteFile(data.CurrentPath, []byte(data.Content), 0644)
+	ioutil.WriteFile(data.CurrentPath, []byte(data.Content), 0)
 
 }
 
@@ -116,8 +115,6 @@ func main() {
 	r.Static("/static", "views/static")
 
 	r.GET("/", func(ctx echo.Context) error {
-
-		// readFile("./content/markdown-syntax.md")
 
 		check_dir()
 
@@ -136,18 +133,18 @@ func main() {
 			readFile(path)
 		}
 
-		// return ctx.Redirect(http.StatusOK, "/")
-		return ctx.Render(http.StatusOK, "index.html", M{})
+		return ctx.Redirect(http.StatusTemporaryRedirect, "/")
+		// return ctx.Render(http.StatusOK, "index.html", M{})
 	})
 
 	r.GET("/read", func(ctx echo.Context) error {
 		return ctx.JSON(http.StatusOK, data)
 	})
 
-	r.POST("/save", func(ctx echo.Context) error {
+	r.POST("/", func(ctx echo.Context) error {
 		data.CurrentPath = ctx.FormValue("Filepath")
 		data.Content = ctx.FormValue("Content")
-		fmt.Println(data)
+
 		writeFile()
 
 		return ctx.JSON(http.StatusOK, M{
