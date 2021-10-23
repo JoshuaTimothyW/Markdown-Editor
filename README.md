@@ -1,4 +1,4 @@
-# Markdown Editor
+# Markdown Editor (Unfinished)
 
 Create my own version of markdown editor with Go and Toast UI Editor.
 
