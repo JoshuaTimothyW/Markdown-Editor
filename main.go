@@ -1,8 +1,10 @@
 package main
 
 import (
+	"embed"
 	"html/template"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -24,6 +26,9 @@ type Data struct {
 	CurrentPath string
 	List_files  []Files
 }
+
+//go:embed views/*
+var embededFiles embed.FS
 
 var data Data
 
@@ -102,6 +107,21 @@ func writeFile() {
 
 }
 
+func getFileSystem(useOS bool) http.FileSystem {
+	if useOS {
+		println("using live mode")
+		return http.FS(os.DirFS("app"))
+	}
+
+	println("using embed mode")
+	fsys, err := fs.Sub(embededFiles, "app")
+	if err != nil {
+		panic(err)
+	}
+
+	return http.FS(fsys)
+}
+
 func main() {
 
 	r := echo.New()
@@ -134,7 +154,6 @@ func main() {
 		}
 
 		return ctx.Redirect(http.StatusTemporaryRedirect, "/")
-		// return ctx.Render(http.StatusOK, "index.html", M{})
 	})
 
 	r.GET("/read", func(ctx echo.Context) error {
@@ -152,6 +171,10 @@ func main() {
 		})
 	})
 
-	r.Start(":9000")
+	useOS := len(os.Args) > 1 && os.Args[1] == "live"
+	assetHandler := http.FileServer(getFileSystem(useOS))
 
+	r.GET("/file", echo.WrapHandler(assetHandler))
+
+	r.Start("localhost:9000")
 }
