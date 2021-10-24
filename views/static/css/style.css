@@ -61,6 +61,13 @@ body{
     color: white;
 }
 
+.newbtn{
+    background-color: var(--success);
+    border-color: var(--success);
+    color: white;
+    position: absolute;
+}
+
 .btn-primary:hover{
     background-color: #0dcaf0;
 }

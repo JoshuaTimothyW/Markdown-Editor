@@ -1,15 +1,16 @@
 package main
 
 import (
-	"embed"
 	"html/template"
 	"io"
-	"io/fs"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 
+	rice "github.com/GeertJohan/go.rice"
 	"github.com/labstack/echo"
 )
 
@@ -26,9 +27,6 @@ type Data struct {
 	CurrentPath string
 	List_files  []Files
 }
-
-//go:embed views/*
-var embededFiles embed.FS
 
 var data Data
 
@@ -104,44 +102,29 @@ func readFile(path string) {
 
 func writeFile() {
 	ioutil.WriteFile(data.CurrentPath, []byte(data.Content), 0)
-
 }
 
-func getFileSystem(useOS bool) http.FileSystem {
-	if useOS {
-		println("using live mode")
-		return http.FS(os.DirFS("app"))
-	}
+func openbrowser(url string) {
+	var err error
 
-	println("using embed mode")
-	fsys, err := fs.Sub(embededFiles, "app")
-	if err != nil {
-		panic(err)
+	switch runtime.GOOS {
+	case "linux":
+		err = exec.Command("xdg-open", url).Start()
+	case "windows":
+		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+	case "darwin":
+		err = exec.Command("open", url).Start()
+	default:
+		println(err)
 	}
-
-	return http.FS(fsys)
 }
 
 func main() {
+	e := echo.New()
 
-	r := echo.New()
+	assetHandler := http.FileServer(rice.MustFindBox("views").HTTPBox())
 
-	renderer := &TemplateRenderer{
-		templates: template.Must(template.ParseGlob("views/*.html")),
-	}
-
-	r.Renderer = renderer
-
-	r.Static("/static", "views/static")
-
-	r.GET("/", func(ctx echo.Context) error {
-
-		check_dir()
-
-		return ctx.Render(http.StatusOK, "index.html", M{})
-	})
-
-	r.GET("/edit", func(ctx echo.Context) error {
+	e.GET("/edit", func(ctx echo.Context) error {
 
 		path := ctx.QueryParam("path")
 
@@ -156,11 +139,12 @@ func main() {
 		return ctx.Redirect(http.StatusTemporaryRedirect, "/")
 	})
 
-	r.GET("/read", func(ctx echo.Context) error {
+	e.GET("/read", func(ctx echo.Context) error {
+		check_dir()
 		return ctx.JSON(http.StatusOK, data)
 	})
 
-	r.POST("/", func(ctx echo.Context) error {
+	e.POST("/", func(ctx echo.Context) error {
 		data.CurrentPath = ctx.FormValue("Filepath")
 		data.Content = ctx.FormValue("Content")
 
@@ -171,10 +155,11 @@ func main() {
 		})
 	})
 
-	useOS := len(os.Args) > 1 && os.Args[1] == "live"
-	assetHandler := http.FileServer(getFileSystem(useOS))
+	e.GET("/*", echo.WrapHandler(assetHandler))
 
-	r.GET("/file", echo.WrapHandler(assetHandler))
+	url := "localhost:8000"
 
-	r.Start("localhost:9000")
+	openbrowser("http://" + url)
+
+	e.Start(url)
 }
