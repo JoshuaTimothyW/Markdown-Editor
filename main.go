@@ -53,6 +53,8 @@ func list_dir(path string) int {
 
 	var file Files
 
+	data.CurrentPath = path
+
 	err := filepath.Walk("./content",
 		func(name string, info os.FileInfo, err error) error {
 			if err != nil {

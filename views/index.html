@@ -5,17 +5,24 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markdown Editor</title>
+    
     <link rel="stylesheet" href="static/css/toastui-editor.min.css">
     <link rel="stylesheet" href="static/css/toastui-editor-dark.min.css">
     <script src="static/js/toastui-editor-all.min.js"></script>
+
     <link rel="stylesheet" href="static/css/style.css">
+    <link rel="icon" type="image/x-icon" href="static/img/markdown.ico"> 
 </head>
 <body class="container-fluid">
     <div class="navbar">
         <div id="mySidenav" class="sidenav">
             <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
             <div id="list-files">
+                <strong class="selected">test 1</strong>
+                <a href="">test 2</a>
+                <a href="">test 3</a>
             </div>
+            <!-- <button class="btn btn-success" onclick="toggle_modal()">New File</button> -->
         </div>
         <span onclick="openNav()" class="menu-bar">
             <svg viewBox="0 0 100 80" width="40" height="40">
@@ -27,16 +34,29 @@
         <h2 id="filename" class="title"></h2>
         <div class="float-right">
             <div id="status" class="tag">Status: Saved</div>
-            <button id="btn-save" type="button" class="btn btn-primary" onclick="save()" >Save</button>
+            <button id="btn-save" type="button" class="btn btn-primary" onclick="save()" disabled >Save</button>
         </div>
     </div>
 
     <div id="editor"></div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close">&times;</span>
+                <h2>New File</h2>
+                <input type="text" id="text-input" class="form-control">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" style="width: 100%;" onclick="new_file()" >Save</button>
+            </div>
+        </div>
+    </div>
 </body>
 <script>
 
-    var title = "default";
-    var filepath;
+    var title = "";
+    var filepath = "";
 
     const editor = new toastui.Editor({
         el: document.querySelector('#editor'),
@@ -48,7 +68,6 @@
     function click_link(url) {
         closeNav();
         getContent(url);
-        document.getElementById("btn-save").removeAttribute("disabled");
     }
 
     async function getContent(url) {
@@ -57,17 +76,26 @@
         let txt;
 
         console.log(data);
+
+        title = data["Title"];
+        
+        if(title){
+            document.getElementById("btn-save").removeAttribute('disabled') = false;
+        }
         
         // list files
         data["List_files"].forEach( el => {
-            txt += 
-            "<a href='/edit?path="+el.Filepath+"' >"+el.Filename+"</a>"; 
+            if( el.Filename === title ){
+                txt += 
+                "<strong class='selected'>"+el.Filename+"</strong>";
+            }else{
+                txt += 
+                "<a href='/edit?path="+el.Filepath+"' >"+el.Filename+"</a>"; 
+            }
         });
 
         document.getElementById("list-files").innerHTML = txt;
-
-        title = data["Title"];
-
+        
         // set title
         document.getElementById("filename").innerHTML = title;
 
@@ -130,6 +158,40 @@
         })
 
     }
+
+    // New File
+    async function toggle_modal() {
+        let modal = document.getElementById("modal");
+        let status = modal.style.display;
+
+        if(status == "block"){
+            modal.style.display = "none";
+        }else{
+            modal.style.display = "block";
+        }
+    }
+
+    
+    // Rename file
+    async function rename() {
+        filepath = filepath+title;
+        await save();
+        window.location.href = "/edit?path="+filepath;
+    }
+
+    // New File
+    async function new_file(){
+        toggle_modal();
+        title = document.getElementById("text-input").value;
+        rename();
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    } 
 
 </script>
 </html>
