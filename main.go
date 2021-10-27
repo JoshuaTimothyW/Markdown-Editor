@@ -53,8 +53,6 @@ func list_dir(path string) int {
 
 	var file Files
 
-	data.CurrentPath = path
-
 	err := filepath.Walk("./content",
 		func(name string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -65,6 +63,7 @@ func list_dir(path string) int {
 				file.Filename = filepath.Base(name)
 				file.Filepath = name
 				data.List_files = append(data.List_files, file)
+				data.CurrentPath = path
 			}
 
 			return nil
@@ -104,6 +103,7 @@ func readFile(path string) {
 
 func writeFile() {
 	ioutil.WriteFile(data.CurrentPath, []byte(data.Content), 0)
+	println("Saved ", data.CurrentPath)
 }
 
 func openbrowser(url string) {
@@ -144,6 +144,16 @@ func main() {
 	e.GET("/read", func(ctx echo.Context) error {
 		check_dir()
 		return ctx.JSON(http.StatusOK, data)
+	})
+
+	e.POST("/new", func(ctx echo.Context) error {
+
+		ioutil.WriteFile(ctx.FormValue("Filepath"), []byte(""), 0)
+		println("Saved ", ctx.FormValue("Filepath"))
+
+		return ctx.JSON(http.StatusOK, M{
+			"status": "OK",
+		})
 	})
 
 	e.POST("/", func(ctx echo.Context) error {
