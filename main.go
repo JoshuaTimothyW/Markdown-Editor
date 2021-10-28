@@ -103,7 +103,7 @@ func readFile(path string) {
 
 func writeFile() {
 	ioutil.WriteFile(data.CurrentPath, []byte(data.Content), 0)
-	println("Saved ", data.CurrentPath)
+	// println("Saved ", data.CurrentPath)
 }
 
 func openbrowser(url string) {
@@ -148,7 +148,14 @@ func main() {
 
 	e.POST("/new", func(ctx echo.Context) error {
 
-		ioutil.WriteFile(ctx.FormValue("Filepath"), []byte(""), 0)
+		f, e := os.Create(ctx.FormValue("Filepath"))
+
+		if e != nil {
+			panic(e)
+		}
+
+		defer f.Close()
+
 		println("Saved ", ctx.FormValue("Filepath"))
 
 		return ctx.JSON(http.StatusOK, M{

@@ -53,7 +53,7 @@
                 <span class="input-group-text" id="basic-addon2">.md</span>
             </div>
             <div class="d-grid gap-2 mt-4">
-                <button type="button" class="btn btn-success" onclick="new_file()">New File</button>            
+                <button type="button" class="btn btn-success" onclick="showNewFile()">New File</button>            
             </div>
         </div>
     </div>
@@ -164,7 +164,7 @@
         window.location.href = "/edit?path="+filepath;
     }
 
-    function hide_new_file() {
+    function newFile() {
         let new_file = document.getElementById("new-file-input").value;
         
         if(new_file){            
@@ -192,25 +192,29 @@
             })
 
         }
+    }
 
+    // hide new file input
+    function hideNewFile() {
         document.getElementById("new-file-input").style.display = 'none';
         document.getElementById("basic-addon2").style.display = 'none';
     }
 
     // when new file input not focused
-    document.getElementById('new-file-input').addEventListener('blur',hide_new_file);
+    document.getElementById('new-file-input').addEventListener('blur',hideNewFile);
 
     // Execute a function when the user releases a key on the keyboard
     document.getElementById('new-file-input').addEventListener("keyup", function(event) {
         if (event.keyCode === 13) {
             // Cancel the default action, if needed
             event.preventDefault();
-            hide_new_file();
+            newFile();
+            hideNewFile();
         }
     }); 
 
-    // New File
-    function new_file(){
+    // Show new file input
+    function showNewFile(){
         document.getElementById("new-file-input").value = '';
         document.getElementById("new-file-input").style.display = '';
         document.getElementById("basic-addon2").style.display = '';
