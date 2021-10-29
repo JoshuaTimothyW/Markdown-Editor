@@ -104,11 +104,15 @@
         data["List_files"].forEach( el => {
             if( el.Filename === title ){
                 txt += 
-                '<a class="list-group-item active" aria-current="true">'+el.Filename+'</a>';
+                `
+                <a class="list-group-item active" aria-current="true">`+el.Filename+`</a>
+                `;
                 filepath = currpath+'/'+el.Filename;
             }else{
                 txt += 
-                '<a href="/edit?path='+el.Filepath+'" class="list-group-item bg-dark text-white" aria-current="true">'+el.Filename+'</a>' 
+                `
+                <a href="/edit?path=`+el.Filepath+`" class="list-group-item bg-dark text-white" aria-current="true">`+el.Filename+`</a>
+                `
             }
         });
 

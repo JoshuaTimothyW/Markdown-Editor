@@ -30,6 +30,8 @@ type Data struct {
 
 var data Data
 
+var deploy = 0
+
 // TemplateRenderer is a custom html/template renderer for Echo framework
 type TemplateRenderer struct {
 	templates *template.Template
@@ -53,13 +55,13 @@ func list_dir(path string) int {
 
 	var file Files
 
-	err := filepath.Walk("./content",
+	err := filepath.Walk(path,
 		func(name string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
 
-			if len(filepath.Ext(name)) > 0 {
+			if filepath.Ext(name) == ".md" {
 				file.Filename = filepath.Base(name)
 				file.Filepath = name
 				data.List_files = append(data.List_files, file)
@@ -81,7 +83,7 @@ func check_dir() {
 	is_dir := list_dir("./content")
 
 	if is_dir != 1 {
-		list_dir(".")
+		is_dir = list_dir(".")
 
 		if is_dir != 1 {
 			println("No markdown files")
@@ -178,7 +180,9 @@ func main() {
 
 	url := "localhost:8000"
 
-	openbrowser("http://" + url)
+	if deploy == 1 {
+		openbrowser("http://" + url)
+	}
 
 	e.Start(url)
 }

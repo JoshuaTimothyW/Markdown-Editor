@@ -1,4 +1,4 @@
-module echo
+module mdeditor
 
 go 1.16
 
